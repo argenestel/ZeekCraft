@@ -3,7 +3,7 @@
 Endless Fully Onchain Crafting Game On zksync
 
 
-# Contract
+## Contract
 
 Deployed on Zk sepolia Testnet
 
@@ -20,5 +20,9 @@ Deployed on Zk sepolia Testnet
 
 ZeekCraftToken: "0x794CdABc17830f4bcaAACa7ee1658c31942845dA",
 
+
+### Atlas
+
+Visit Atlas to Deploy Contract: https://app.atlaszk.com/ide?m=4baWX7
 
 
