@@ -11,12 +11,22 @@ import {
 import { ConnectWallet } from "components/Button/ConnectWallet";
 import { addresses } from "constants/addresses";
 import ZeekCraft from "../../../../public/ZeekCraft.sol/ZeekCraft.json";
-
+import { getGeneralPaymasterInput, zkSyncSepoliaTestnet } from 'viem/zksync'
+import { createWalletClient, custom } from "viem";
+import { eip712WalletActions } from 'viem/zksync'
 interface FooterMintProps {
   node: Node | undefined;
   nodeA: Node | undefined;
   nodeB: Node | undefined;
 }
+
+
+// "GaslessPaymaster" was successfully deployed:
+//  - Contract address: 0x71C8e4F11988A5f0b70Eb93BcCacb94B1D6D758C
+//  - Contract source: contracts/GaslessPaymaster.sol:GaslessPaymaster
+//  - Encoded constructor arguments: 0x
+
+
 
 const FooterMint: React.FC<FooterMintProps> = ({ node, nodeA, nodeB }) => {
   const { address, isConnected } = useAccount();
@@ -25,6 +35,16 @@ const FooterMint: React.FC<FooterMintProps> = ({ node, nodeA, nodeB }) => {
   const [minted, setMinted] = useState(false);
   const { toast } = useToast();
 
+
+  const walletClient = createWalletClient({ 
+    chain: zkSyncSepoliaTestnet, 
+    transport: custom(window?.ethereum!), 
+  }).extend(eip712WalletActions()) 
+
+
+  const data = getGeneralPaymasterInput({
+    innerInput: new Uint8Array(),
+  })
   // Read the total number of recipes
   const { data: totalRecipes } = useReadContract({
     address: addresses.ZeekCraft as `0x${string}`,
@@ -56,7 +76,19 @@ const FooterMint: React.FC<FooterMintProps> = ({ node, nodeA, nodeB }) => {
   const createRecipe = async () => {
     if (!node || !nodeA || !nodeB) return;
 
-    writeContract({
+    // writeContract({
+    //   address: addresses.ZeekCraft as `0x${string}`,
+    //   abi: ZeekCraft.abi,
+    //   functionName: "createRecipe",
+    //   args: [
+    //     BigInt(nodeA.data.craft_id),
+    //     BigInt(nodeB.data.craft_id),
+    //     node.data.label,
+    //     node.data.emoji,
+    //   ],
+    // });
+
+    await walletClient.writeContract({
       address: addresses.ZeekCraft as `0x${string}`,
       abi: ZeekCraft.abi,
       functionName: "createRecipe",
@@ -66,6 +98,9 @@ const FooterMint: React.FC<FooterMintProps> = ({ node, nodeA, nodeB }) => {
         node.data.label,
         node.data.emoji,
       ],
+      account: address!,
+      paymaster: '0x71C8e4F11988A5f0b70Eb93BcCacb94B1D6D758C',
+      paymasterInput: data
     });
   };
 
